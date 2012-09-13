@@ -1,0 +1,19 @@
+--- a/WebappConfig/filetype.py
++++ b/WebappConfig/filetype.py
+@@ -142,13 +142,13 @@ class FileType:
+
+                 OUT.debug('Adding config-server-owned file', 8)
+
+-                self.__cache[self.__fix(i).strip()] = 'config-server-owned'
++                self.__cache[self.__fix(i)] = 'config-server-owned'
+
+             else:
+
+                 OUT.debug('Adding server-owned file', 8)
+
+-                self.__cache[self.__fix(i).strip()] = 'server-owned'
++                self.__cache[self.__fix(i)] = 'server-owned'
+
+         for i in server_owned_r:
+
+

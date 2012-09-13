@@ -1,0 +1,18 @@
+
+########################################
+## <summary>
+##      Connect to phpfpm using a unix domain stream socket.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+## <rolecap/>
+#
+interface(`phpfpm_stream_connect',`
+        gen_require(`
+                type phpfpm_t, phpfpm_var_run_t;
+        ')
+        stream_connect_pattern($1, phpfpm_var_run_t, phpfpm_var_run_t, phpfpm_t)
+')

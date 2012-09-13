@@ -4,9 +4,9 @@
 EAPI="4"
 
 IUSE=""
-MODS="phpfpm"
+MODS="phpfpm_lerya"
 BASEPOL="2.20120725-r5"
-POLICY_FILES="phpfpm.if phpfpm.fc phpfpm.te"
+POLICY_FILES="phpfpm_lerya.if phpfpm_lerya.fc phpfpm_lerya.te"
 
 inherit distutils eutils selinux-policy-2
 

@@ -8,7 +8,7 @@ MODS="rtorrent"
 BASEPOL="2.20120725-r5"
 POLICY_FILES="rtorrent.if rtorrent.fc rtorrent.te"
 
-inherit distutils eutils selinux-policy-2
+inherit selinux-policy-2
 
 DESCRIPTION="SELinux policy for rtorrent"
 

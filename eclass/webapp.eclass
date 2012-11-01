@@ -249,7 +249,7 @@ webapp_postupgrade_txt() {
 	cp "${2}" "${D}/${MY_APPDIR}/postupgrade-${1}.txt"
 }
 
-# helper for webapp_serverowned()
+# helpers for webapp_serverowned()
 _webapp_serverowned() {
 	debug-print-function $FUNCNAME $*
 
@@ -257,8 +257,19 @@ _webapp_serverowned() {
 	local my_file="$(webapp_strip_appdir "${1}")"
 	my_file="$(webapp_strip_cwd "${my_file}")"
 
-	elog "(server owned${3}) ${my_file}"
-	echo "${my_file}" >> "${D}/${2}"
+	elog "(server owned) ${my_file}"
+	echo "${my_file}" >> "${D}/${WA_SOLIST}"
+}
+
+_webapp_recursive_serverowned() {
+	debug-print-function $FUNCNAME $*
+
+	webapp_checkdirexists "${1}" "${D}"
+	local my_dir="$(webapp_strip_appdir "${1}")"
+	my_dir="$(webapp_strip_cwd "${my_dir}")"
+
+	elog "(server recursively owned) ${my_dir}"
+	echo "${my_dir}" >> "${D}/${WA_SODLIST}"
 }
 
 # @FUNCTION: webapp_serverowned
@@ -270,15 +281,15 @@ _webapp_serverowned() {
 webapp_serverowned() {
 	debug-print-function $FUNCNAME $*
 
-	local a m
+	local m
 	if [[ "${1}" == "-R" ]]; then
 		shift
 		for m in "$@"; do
-			_webapp_serverowned "${m}" "${WA_SODLIST}" "recursively"
+			_webapp_recursive_serverowned "${m}"
 		done
 	else
 		for m in "$@"; do
-			_webapp_serverowned "${m}" "${WA_SOLIST}" ""
+			_webapp_serverowned "${m}"
 		done
 	fi
 }

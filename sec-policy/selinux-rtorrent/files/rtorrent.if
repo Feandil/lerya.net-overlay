@@ -2,44 +2,33 @@
 
 #######################################
 ## <summary>
-##      The role for using the rtorrent application.
+## 	Role access for rtorrent
+##      Misssing parts
 ## </summary>
-## <param name="role">
+## <param name="user_role">
 ##      <summary>
 ##      The role associated with the user domain.
 ##      </summary>
 ## </param>
-## <param name="domain">
+## <param name="user_domain">
 ##      <summary>
 ##      The user domain.
 ##      </summary>
 ## </param>
 #
-interface(`rtorrent_role',`
+interface(`rtorrent_role_missing',`
 	gen_require(`
-		type rtorrent_t, rtorrent_exec_t, rtorrent_conf_t, rtorrent_session_t, rtorrent_download_t;
+		type rtorrent_download_t;
 	')
-
-	role $1 types rtorrent_t;
-
-	domtrans_pattern($2, rtorrent_exec_t, rtorrent_t)
-
-	allow $2 rtorrent_t:process signal_perms;
-
-	manage_files_pattern($2, rtorrent_conf_t, rtorrent_conf_t)
-
-	read_files_pattern($2, rtorrent_session_t, rtorrent_session_t)
-	list_dirs_pattern($2, rtorrent_session_t, rtorrent_session_t)
 
 	manage_dirs_pattern($2, rtorrent_download_t, rtorrent_download_t)
 	manage_files_pattern($2, rtorrent_download_t, rtorrent_download_t)
-
-	ps_process_pattern($2, rtorrent_t)
 ')
 
 #######################################
 ## <summary>
-##      The role for total power on the rtorrent application.
+##      Administer the rtorrent application.
+##      Misssing parts
 ## </summary>
 ## <param name="domain">
 ##      <summary>
@@ -52,24 +41,15 @@ interface(`rtorrent_role',`
 ##      </summary>
 ## </param>
 #
-interface(`rtorrent_admin',`
+interface(`rtorrent_admin_missing',`
 	gen_require(`
-		type rtorrent_t, rtorrent_exec_t, rtorrent_conf_t, rtorrent_session_t, rtorrent_download_t;
+		type rtorrent_t, rtorrent_session_t;
 	')
 
-	role $2 types rtorrent_t;
-
-	domtrans_pattern($1, rtorrent_exec_t, rtorrent_t)
-
-	allow $1 rtorrent_t:process {ptrace signal_perms};
-
-	manage_files_pattern($1, rtorrent_conf_t, rtorrent_conf_t)
+	allow $1 rtorrent_t:process ptrace;
 
 	manage_files_pattern($1, rtorrent_session_t, rtorrent_session_t)
 	manage_dirs_pattern($1, rtorrent_session_t, rtorrent_session_t)
 
-	manage_dirs_pattern($1, rtorrent_download_t, rtorrent_download_t)
-	manage_files_pattern($1, rtorrent_download_t, rtorrent_download_t)
-
-	ps_process_pattern($1, rtorrent_t)
+	rtorrent_role($2, $1)
 ')

@@ -34,7 +34,7 @@ src_prepare() {
 	epatch ${FILESDIR}/webapp-config-1.20.19-manage-recursive-server-owned-files-independently.patch || die "Patch failed"
 	epatch ${FILESDIR}/webapp-config-1.20.19-add-SELinux-support.patch || die "Patch failed"
 	if use selinux; then
-		sed -i -e "s/'g_selinux'         : 'no',/'g_selinux'         : 'yes',/" ${WORKDIR}/${P}/WebappConfig/selinux.py || die "Unable to activate selinux by default"
+		sed -i -e "s/'g_selinux'         : 'no',/'g_selinux'         : 'yes',/" ${WORKDIR}/${P}/WebappConfig/config.py || die "Unable to activate selinux by default"
 	fi
 }
 

@@ -14,12 +14,13 @@ SRC_URI=""
 LICENSE="GPLv2"
 SLOT="0"
 KEYWORDS="~amd64 ~mips ~x86"
-IUSE=""
+IUSE="selinux"
 
 DEPEND="sys-libs/pam
         >dev-db/sqlite-3
         dev-libs/openssl"
-RDEPEND="${DEPEND}"
+RDEPEND="${DEPEND}
+	selinux? ( sec-policy/selinux-yubisql_pam )"
 
 pkg_setup() {
         ebegin "Creating yubisql group and user"

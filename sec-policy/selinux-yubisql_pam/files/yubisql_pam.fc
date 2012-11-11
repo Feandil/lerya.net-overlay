@@ -1,0 +1,4 @@
+/usr/bin/check_OTP	--	gen_context(system_u:object_r:yubisql_pam_check_exec_t,s0)
+/usr/sbin/manage_OTP	--	gen_context(system_u:object_r:yubisql_pam_manage_exec_t,s0)
+/etc/yubisql(/.*)?		gen_context(system_u:object_r:yubisql_pam_db_t,s0)
+

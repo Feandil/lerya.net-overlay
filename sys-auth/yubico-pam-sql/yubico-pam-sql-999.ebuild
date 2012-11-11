@@ -21,6 +21,13 @@ DEPEND="sys-libs/pam
         dev-libs/openssl"
 RDEPEND="${DEPEND}"
 
+pkg_setup() {
+        ebegin "Creating yubisql group and user"
+        enewgroup yubisql
+        enewuser yubisql -1 -1 /etc/yubisql yubisql
+        eend ${?}
+}
+
 src_prepare() {
 	cd "${S}"
 	eautoreconf
@@ -31,4 +38,20 @@ src_install() {
 	emake install DESTDIR="${D}" PAMDIR="$(get_libdir)/security"
 	find "${D}" -type f -name \*.a -delete
 	find "${D}" -type f -name \*.la -delete
+
+	fowners root:yubisql /usr/sbin/manage_OTP
+	fperms  2550 /usr/sbin/manage_OTP
+
+	fowners root:yubisql /usr/bin/check_OTP
+	fperms  2555 /usr/bin/check_OTP
+
+	mkdir -p ${D}/etc/yubisql
+	fowners yubisql:yubisql /etc/yubisql
+	fperms 2770 /etc/yubisql
+}
+
+pkg_config() {
+	/usr/sbin/manage_OTP -s /etc/yubisql/db -c
+	chown yubisql:yubisql /etc/yubisql/db
+	chmod 660 /etc/yubisql/db
 }

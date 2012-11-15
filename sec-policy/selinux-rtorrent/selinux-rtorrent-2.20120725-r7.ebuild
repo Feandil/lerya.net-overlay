@@ -5,7 +5,7 @@ EAPI="4"
 
 IUSE=""
 MODS="rtorrent"
-BASEPOL="2.20120725-r6"
+BASEPOL="2.20120725-r7"
 POLICY_FILES="rtorrent.if rtorrent.fc rtorrent.te"
 
 inherit selinux-policy-2

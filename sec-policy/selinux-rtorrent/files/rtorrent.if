@@ -46,10 +46,5 @@ interface(`rtorrent_admin_missing',`
 		type rtorrent_t, rtorrent_session_t;
 	')
 
-	allow $1 rtorrent_t:process ptrace;
-
-	manage_files_pattern($1, rtorrent_session_t, rtorrent_session_t)
-	manage_dirs_pattern($1, rtorrent_session_t, rtorrent_session_t)
-
-	rtorrent_role($2, $1)
+	rtorrent_role_missing($2, $1)
 ')

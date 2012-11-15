@@ -156,7 +156,7 @@ selinux-policy-2_src_prepare() {
 	if [[ "$(declare -p POLICY_FILES 2>/dev/null 2>&1)" == "declare -a"* ]] ||
 	   [[ -n ${POLICY_FILES} ]];
 	then
-		add_interfaces=1;
+	    add_interfaces=1;
 		cd "${S}/refpolicy/policy/modules"
 		for POLFILE in ${POLICY_FILES[@]};
 		do

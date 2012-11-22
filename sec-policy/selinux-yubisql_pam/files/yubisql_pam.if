@@ -16,7 +16,7 @@ interface(`yubisql_pam_system',`
 	')
 
 	domtrans_pattern($1, yubisql_pam_check_exec_t, yubisql_pam_check_t)
-	allow $1 yubisql_pam_manage_t:process signal_perms;
+	allow $1 yubisql_pam_check_t:process signal_perms;
 ')
 
 #######################################

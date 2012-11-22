@@ -1,0 +1,6 @@
+HOME_DIR/.rss2email             -d gen_context(system_u:object_r:rss2email_home_t,s0)
+HOME_DIR/.rss2email/config.py   -- gen_context(system_u:object_r:rss2email_config_t,s0)
+HOME_DIR/.rss2email/config.pyc  -- gen_context(system_u:object_r:rss2email_config_pyc_t,s0)
+HOME_DIR/.rss2email/feeds.dat   -- gen_context(system_u:object_r:rss2email_feed_t,s0)
+
+/usr/bin/r2e                    -- gen_context(system_u:object_r:rss2email_exec_t,s0)

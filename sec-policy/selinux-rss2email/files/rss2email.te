@@ -42,18 +42,29 @@ mta_system_content(rss2email_feed_t)
 
 corecmd_exec_bin(rss2email_t)
 corecmd_exec_shell(rss2email_t)
+
 corenet_tcp_connect_http_port(rss2email_t)
+
 cron_rw_pipes(rss2email_t)
 cron_read_pipes(rss2email_t)
 cron_use_fds(rss2email_t)
+
 domain_use_interactive_fds(rss2email_t)
+
 files_read_etc_files(rss2email_t)
 files_read_usr_files(rss2email_t)
 kernel_read_system_state(rss2email_t)
 miscfiles_read_localization(rss2email_t)
+
 mta_send_mail(rss2email_t)
+
 sysnet_dns_name_resolve(rss2email_t)
+
 userdom_list_user_home_dirs(rss2email_t)
+
+optional_policy(`
+	cron_system_entry(rss2email_t, rss2email_exec_t)
+')
 
 ########################################
 #
@@ -62,8 +73,7 @@ userdom_list_user_home_dirs(rss2email_t)
 
 gen_require(`
 	role user_r, staff_r;
-	type user_t, staff_t, cronjob_t;
+	type user_t, staff_t;
 ')
 rss2email_role(user_r, user_t)
 rss2email_role(staff_r, staff_t)
-rss2email_exec(cronjob_t)

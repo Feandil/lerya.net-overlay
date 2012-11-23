@@ -2,25 +2,6 @@
 
 #######################################
 ## <summary>
-## Transition to rss2email domain
-## </summary>
-## <param name="system_domain">
-## <summary>
-## The System domain.
-## </summary>
-## </param>
-#
-interface(`rss2email_exec',`
-	gen_require(`
-		type rss2email_t, rss2email_exec_t;
-	')
-
-	domtrans_pattern($1, rss2email_exec_t, rss2email_t)
-	allow $1 rss2email_t:process signal_perms;
-')
-
-#######################################
-## <summary>
 ##      Role access for rss2email
 ## </summary>
 ## <param name="user_role">

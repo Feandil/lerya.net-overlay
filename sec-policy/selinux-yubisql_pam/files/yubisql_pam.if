@@ -46,6 +46,8 @@ interface(`yubisql_pam_role',`
 	allow $2 yubisql_pam_check_t:process signal_perms;
 
 	ps_process_pattern($2, yubisql_pam_check_t)
+
+	dontaudit $2 yubisql_pam_db_t:dir getattr_dir_perms;
 ')
 
 #######################################

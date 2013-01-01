@@ -11,12 +11,13 @@ SRC_URI="http://owncloud.org/releases/${P}.tar.bz2"
 LICENSE="AGPL-3"
 
 KEYWORDS="~amd64 ~x86"
-IUSE="+curl mysql postgres +sqlite3"
-REQUIRED_USE="|| ( mysql postgres sqlite3 )"
+IUSE="+curl mysql postgres +sqlite"
+REQUIRED_USE="|| ( mysql postgres sqlite )"
 
 DEPEND=""
-RDEPEND="dev-lang/php[curl?,gd,json,mysql?,pdo,postgres?,sqlite3?,xmlwriter,zip]"
-
+RDEPEND="|| ( >=dev-lang/php-5.4.9[curl?,gd,json,mysql?,pdo,postgres?,sqlite?,xmlwriter,zip]
+	sqlite? ( <dev-lang/php-5.4.9[curl?,gd,json,mysql?,pdo,postgres?,sqlite3,xmlwriter,zip] )
+	!sqlite? ( <dev-lang/php-5.4.9[curl?,gd,json,mysql?,pdo,postgres?,xmlwriter,zip] ) )"
 need_httpd_cgi
 need_php_httpd
 

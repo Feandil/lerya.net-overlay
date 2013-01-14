@@ -161,7 +161,7 @@ selinux-policy-2_src_prepare() {
 		for POLFILE in ${POLICY_FILES[@]};
 		do
 			cp "${FILESDIR}/${POLFILE}" 3rd_party/ || die "Could not copy ${POLFILE} to 3rd_party/ location";
-                        modfiles="${S}/refpolicy/policy/modules/3rd_party/${POLFILE} $modfiles"
+			modfiles="${S}/refpolicy/policy/modules/3rd_party/${POLFILE} $modfiles"
 		done
 	fi
 

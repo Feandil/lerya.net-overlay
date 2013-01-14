@@ -1,4 +1,4 @@
-/dev/mcelog	--	gen_context(system_u:object_r:mcelog_device_t,mls_systemhigh)
+/dev/mcelog	-c	gen_context(system_u:object_r:mcelog_device_t,mls_systemhigh)
 
 /etc/mcelog(/.*)?	gen_context(system_u:object_r:mcelog_etc_t,s0)
 

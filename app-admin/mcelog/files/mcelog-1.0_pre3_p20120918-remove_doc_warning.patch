@@ -1,0 +1,12 @@
+--- a/Makefile
++++ b/Makefile
+@@ -68,9 +68,6 @@
+ 	done
+ ifdef DOCDIR
+ 	install -m 644 -p ${DOC} $(DESTDIR)${DOCDIR} 
+-else
+-	echo
+-	echo "Consider defining DOCDIR to install additional documentation"
+ endif
+ 
+ clean: test-clean

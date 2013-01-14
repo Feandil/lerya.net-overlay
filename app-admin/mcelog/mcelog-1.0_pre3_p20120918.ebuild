@@ -25,12 +25,13 @@ RESTRICT="test"
 src_prepare() {
 	epatch "${FILESDIR}"/${PN}-0.8_pre1-timestamp-${PN}.patch \
 		"${FILESDIR}"/${P}-build.patch \
-		"${FILESDIR}"/${P}-warnings.patch
+		"${FILESDIR}"/${P}-warnings.patch \
+		"${FILESDIR}"/${P}-remove_doc_warning.patch
 	tc-export CC
 }
 
 src_install() {
-	dosbin ${PN}
+	emake DESTDIR="${D}" install
 
 	insinto /etc/logrotate.d/
 	newins ${PN}.logrotate ${PN}
@@ -38,5 +39,4 @@ src_install() {
 	newinitd "${FILESDIR}"/${PN}.init ${PN}
 
 	dodoc CHANGES README TODO *.pdf
-	doman ${PN}.8
 }

@@ -1,0 +1,102 @@
+--- a/tests/test
++++ b/tests/test
+@@ -21,29 +21,21 @@
+ 
+ # disable trigger
+ echo -n "" > /sys/devices/system/machinecheck/machinecheck0/trigger
+-killall mcelog || true
+-
+-#killwatchdog() { 
+-#	kill %1 || true
+-#}
+-#
+-#watchdog() { 
+-#	sleep 10
+-#	echo timeout waiting for mcelog
+-#	killall mcelog
+-#} 
++if [ "$(ps aux | grep -c mcelog)" != "1" ] ; then
++	echo "You must close existing mcelog daemons before running this script"
++	exit 1
++fi
+ 
+ cd $1
+ 
+-#trap killwatchdog 0
+-#watchdog & 
+-rm -f *.log
+-rm -f results
+-for conf in `ls *.conf`
++tempdir="$(mktemp -d)"
++echo "Please delete ${tempdir} after you checked ${tempdir}/*.log ${tempdir}/return"
++
++for conf in *.conf
+ do
+-	log=`echo $conf | sed "s/conf/log/g"`
++	log="${tempdir}/${conf/.conf/}"
+ 	./inject $conf
+-	$D ../../mcelog --foreground --daemon --debug-numerrors --config $conf --logfile $log >> result
++	$D mcelog --foreground --daemon --debug-numerrors --config $conf --logfile $log
+ 
+ 	# let triggers finish
+ 	sleep 1
+@@ -53,20 +45,19 @@
+ 
+ 	if [ "$NUMT" != 0 ] ; then
+ 		if [ "$NUMC" = 0 ] ; then
+-			echo "$conf: no triggers at all" >> results
++			echo "$conf: no triggers at all" >> "${tempdir}/return"
+ 		fi
+ 	fi
+ 
+ 	if [ "$NUMT" != "" ] ; then
+ 		if [ "$NUMC" != "$NUMT" ] ; then
+-			echo "$conf: triggers did not trigger as expected: $NUMT != $NUMC" >> results
++			echo "$conf: triggers did not trigger as expected: $NUMT != $NUMC"
++			exit 2
+ 		else
+-			echo "$conf: triggers trigger as expected" >> results
++			echo "$conf: triggers trigger as expected" >> "${tempdir}/return"
+ 		fi
+ 	else
+-		echo "$conf: did not declare number of triggers" >> results
++		echo "$conf: did not declare number of triggers" >> "${tempdir}/return"
++		exit 3
+ 	fi
+ done
+-#trap "" 0 
+-#killwatchdog 
+-
+
+--- a/tests/Makefile
++++ b/tests/Makefile
+@@ -2,13 +2,24 @@
+ 
+ DEBUG =
+ 
++TESTS = cache page memdb socket pfa
++
+ test:
+-	./test cache "${DEBUG}"
+-	./test page "${DEBUG}"
+-	./test memdb "${DEBUG}"
+-	./test socket "${DEBUG}"
+-	./test pfa "${DEBUG}"
++	for i in ${TESTS} ; do          \
++		./test $$i "${DEBUG}";  \
++	done
+ 
+ clean:
+ 	rm -f */*log
+ 	rm -f */results
++
++install:
++	mkdir -p $(DESTDIR)/usr/share/mcelog/tests
++	install -m 755 -p test trigger $(DESTDIR)/usr/share/mcelog/tests/
++	for i in ${TESTS} ; do                                                       \
++		mkdir -p $(DESTDIR)/usr/share/mcelog/tests/$$i;                      \
++		install -m 755 -p $$i/inject $(DESTDIR)/usr/share/mcelog/tests/$$i;  \
++		install -m 644 -p $$i/*.conf $(DESTDIR)/usr/share/mcelog/tests/$$i;  \
++	done
++	mkdir -p $(DESTDIR)/usr/share/mcelog/tests/input
++	install -m 755 -p ../input/GEN* $(DESTDIR)/usr/share/mcelog/tests/input

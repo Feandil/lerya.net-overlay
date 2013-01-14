@@ -1,0 +1,17 @@
+--- m	2013-01-13 15:34:04.494106490 +0100
++++ Makefile	2013-01-13 15:34:22.918692468 +0100
+@@ -20,10 +20,10 @@
+ 	bison -d mce.y
+ 
+ install: mce-inject mce-inject.8
+-	install -d $(destdir)$(prefix)/sbin
+-	install -m 755 mce-inject $(destdir)$(prefix)/sbin/mce-inject
+-	install -d $(destdir)$(manprefix)/man/man8
+-	install -m 644 mce-inject.8 $(destdir)$(manprefix)/man/man8/mce-inject.8
++	install -d $(DESTDIR)$(prefix)/sbin
++	install -m 755 mce-inject $(DESTDIR)$(prefix)/sbin/mce-inject
++	install -d $(DESTDIR)$(manprefix)/man/man8
++	install -m 644 mce-inject.8 $(DESTDIR)$(manprefix)/man/man8/mce-inject.8
+ 
+ clean:
+ 	rm -f ${CLEAN}

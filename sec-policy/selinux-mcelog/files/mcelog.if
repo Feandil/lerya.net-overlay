@@ -69,6 +69,8 @@ interface(`mcelog_admin',`
 		')
 
 		domtrans_pattern($1, mcelog_inject_exec_t, mcelog_inject_t)
+		manage_dirs_pattern($1, mcelog_test_log_t, mcelog_test_log_t)
+		manage_files_pattern($1, mcelog_test_log_t, mcelog_test_log_t)
 	')
 
 	files_search_etc($1)

@@ -1,0 +1,13 @@
+--- a/tests/test
++++ b/tests/test
+@@ -31,6 +31,10 @@
+ tempdir="$(mktemp -d)"
+ echo "Please delete ${tempdir} after you checked ${tempdir}/*.log ${tempdir}/return"
+ 
++if [ -f /usr/bin/chcon ]; then
++	chcon --type mcelog_test_log_t $tempdir || exit 4
++fi
++
+ for conf in *.conf
+ do
+ 	log="${tempdir}/${conf/.conf/}"

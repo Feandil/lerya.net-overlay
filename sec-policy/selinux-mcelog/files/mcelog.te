@@ -79,6 +79,9 @@ domain_entry_file(mcelog_inject_t, mcelog_inject_exec_t)
 type mcelog_test_t;
 files_type(mcelog_test_t);
 
+type mcelog_test_log_t;
+files_type(mcelog_test_log_t);
+
 ########################################
 #
 # Local policy
@@ -152,11 +155,17 @@ tunable_policy(`mcelog_tests',`
 	dev_read_sysfs(mcelog_inject_t)
 	allow mcelog_inject_t mcelog_device_t:chr_file rw_chr_file_perms;
 
-	files_read_usr(mcelog_t)
+	files_search_tmp(mcelog_t)
+	files_list_usr(mcelog_t)
 	files_list_usr(mcelog_inject_t)
 
 	read_files_pattern(mcelog_inject_t, mcelog_test_t, mcelog_test_t)
 	read_files_pattern(mcelog_t, mcelog_test_t, mcelog_test_t)
+
+	manage_dirs_pattern(mcelog_t, mcelog_test_log_t, mcelog_test_log_t)
+	append_files_pattern(mcelog_t, mcelog_test_log_t, mcelog_test_log_t)
+	create_files_pattern(mcelog_t, mcelog_test_log_t, mcelog_test_log_t)
+	setattr_files_pattern(mcelog_t, mcelog_test_log_t, mcelog_test_log_t)
 ')
 
 

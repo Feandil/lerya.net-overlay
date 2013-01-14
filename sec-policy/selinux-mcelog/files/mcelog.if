@@ -51,6 +51,8 @@ interface(`mcelog_admin',`
 	role_transition $2 mcelog_initrc_exec_t system_r;
 	allow $2 system_r;
 
+	role $2 types { mcelog_t mcelog_inject_t };
+
 	tunable_policy(`mcelog_client',`
 		gen_require(`
 			type mcelog_exec_t;

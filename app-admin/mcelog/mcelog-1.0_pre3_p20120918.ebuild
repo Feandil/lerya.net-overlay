@@ -29,7 +29,7 @@ src_prepare() {
 		"${FILESDIR}"/${P}-warnings.patch \
 		"${FILESDIR}"/${P}-remove_doc_warning.patch \
 		"${FILESDIR}"/${P}-post_install_tests.patch
-	sed -e "/PATH/d" -e "s/[[^:blank:]]*\/input\/GEN/..\/input\/GEN/" -e "/B=/d" -i tests/*/inject
+	sed -e "/PATH/d" -e "s/\([[:blank:]]*\).*\/input\/GEN/\1..\/input\/GEN/" -e "/B=/d" -i tests/*/inject
 	tc-export CC
 }
 

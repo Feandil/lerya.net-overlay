@@ -144,11 +144,16 @@ optional_policy(`
 tunable_policy(`mcelog_tests',`
 	allow mcelog_inject_t self:capability sys_admin;
 
+	files_dontaudit_read_etc_files(mcelog_inject_t)
+
 	domain_use_interactive_fds(mcelog_inject_t)
 	userdom_use_user_ptys(mcelog_inject_t)
 	kernel_read_system_state(mcelog_inject_t)
 	dev_read_sysfs(mcelog_inject_t)
 	allow mcelog_inject_t mcelog_device_t:chr_file rw_chr_file_perms;
+
+	files_read_usr(mcelog_t)
+	files_list_usr(mcelog_inject_t)
 
 	read_files_pattern(mcelog_inject_t, mcelog_test_t, mcelog_test_t)
 	read_files_pattern(mcelog_t, mcelog_test_t, mcelog_test_t)

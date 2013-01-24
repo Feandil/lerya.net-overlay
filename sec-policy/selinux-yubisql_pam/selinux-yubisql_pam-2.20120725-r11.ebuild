@@ -5,7 +5,7 @@ EAPI="4"
 
 IUSE=""
 MODS="yubisql_pam"
-BASEPOL="2.20120725-r9"
+BASEPOL="2.20120725-r11"
 POLICY_FILES="yubisql_pam.if yubisql_pam.fc yubisql_pam.te"
 
 inherit selinux-policy-2

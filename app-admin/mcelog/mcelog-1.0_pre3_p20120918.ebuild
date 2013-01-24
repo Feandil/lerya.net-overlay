@@ -27,10 +27,14 @@ src_prepare() {
 	epatch "${FILESDIR}"/${PN}-0.8_pre1-timestamp-${PN}.patch \
 		"${FILESDIR}"/${P}-build.patch \
 		"${FILESDIR}"/${P}-warnings.patch \
-		"${FILESDIR}"/${P}-remove_doc_warning.patch \
-		"${FILESDIR}"/${P}-post_install_tests.patch \
-		"${FILESDIR}"/${P}-SELinux_support.patch
-	sed -e "/PATH/d" -e "s/\([[:blank:]]*\).*\/input\/GEN/\1..\/input\/GEN/" -e "/B=/d" -i tests/*/inject
+		"${FILESDIR}"/${P}-remove_doc_warning.patch
+	if use install-tests; then
+		epatch "${FILESDIR}"/${P}-post_install_tests.patch
+		if use selinux; then
+			epatch "${FILESDIR}"/${P}-SELinux_support.patch
+		fi
+		sed -e "/PATH/d" -e "s/\([[:blank:]]*\).*\/input\/GEN/\1..\/input\/GEN/" -e "/B=/d" -i tests/*/inject
+	fi
 	tc-export CC
 }
 
@@ -47,6 +51,6 @@ src_install() {
 	if use install-tests; then
 		emake -C tests DESTDIR="${D}" install
 		insinto /usr/share/${PN}/tests/
-		doins tests/Makefile
+		newins tests/Makefile.test Makefile
 	fi
 }

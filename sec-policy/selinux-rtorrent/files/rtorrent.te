@@ -3,6 +3,8 @@ policy_module(rtorrent, 1.0.0)
 require {
   type user_t;
   role user_r;
+  type staff_t;
+  role staff_r;
   type sysadm_t;
   role sysadm_r;
 }
@@ -107,3 +109,6 @@ tunable_policy(`rtorrent_use_rsync',`
 
 rtorrent_admin_missing(sysadm_t, sysadm_r)
 rtorrent_role_missing(user_r, user_t)
+
+rtorrent_role(staff_r, staff_t)
+rtorrent_role_missing(staff_r, staff_t)

@@ -4,12 +4,12 @@
 EAPI="4"
 
 IUSE=""
-MODS="rss2email"
-BASEPOL="2.20120725-r11"
-POLICY_FILES="rss2email.if rss2email.fc rss2email.te"
+MODS="yubisql_pam"
+BASEPOL="2.20120725-r12"
+POLICY_FILES="yubisql_pam.if yubisql_pam.fc yubisql_pam.te"
 
 inherit selinux-policy-2
 
-DESCRIPTION="SELinux policy for rss2email"
+DESCRIPTION="SELinux policy for yubisql_pam"
 
 KEYWORDS="~amd64"

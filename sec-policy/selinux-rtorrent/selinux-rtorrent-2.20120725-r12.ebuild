@@ -6,7 +6,9 @@ EAPI="4"
 IUSE=""
 MODS="rtorrent"
 BASEPOL="2.20120725-r12"
-POLICY_FILES="rtorrent.if rtorrent.fc rtorrent.te"
+POLICY_PATCH="${FILESDIR}/rtorrent-fix_filescontext.patch \
+              ${FILESDIR}/rtorrent-use-rtorrent_download_t.patch \
+              ${FILESDIR}/rtorrent-adm-manage_sessions.patch"
 
 inherit selinux-policy-2
 

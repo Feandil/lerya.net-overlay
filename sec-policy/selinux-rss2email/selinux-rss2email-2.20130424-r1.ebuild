@@ -5,7 +5,7 @@ EAPI="4"
 
 IUSE=""
 MODS="rss2email"
-BASEPOL="2.20120725-r12"
+BASEPOL="2.20130424-r1"
 POLICY_FILES="rss2email.if rss2email.fc rss2email.te"
 
 inherit selinux-policy-2

@@ -55,9 +55,6 @@ files_dontaudit_read_etc_files(yubisql_pam_check_t)
 dontaudit yubisql_pam_manage_t yubisql_pam_db_t:{file dir} audit_access;
 dontaudit yubisql_pam_check_t yubisql_pam_db_t:{file dir} audit_access;
 
-dontaudit yubisql_pam_manage_t self:capability chown;
-dontaudit yubisql_pam_check_t self:capability chown;
-
 ########################################
 #
 # Should be moved to the correct modules

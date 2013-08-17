@@ -27,7 +27,7 @@ src_unpack() {
 }
 
 pkg_setup() {
-        CONFIG_CHECK="KPROBES OPTPROBES !GRKERNSEC_HIDESYM"
+        CONFIG_CHECK="KPROBES KRETPROBES !GRKERNSEC_HIDESYM"
 
         linux-mod_pkg_setup
 

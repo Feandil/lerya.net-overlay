@@ -1,0 +1,12 @@
+--- a/doc/Makefile
++++ b/doc/Makefile
+@@ -4,8 +4,7 @@
+ endif
+ 
+ all:
+-	# Only build the docs if this is a bzr checkout
+-	test ! -d ../.bzr || $(MAKE) -C user-guide
++	$(MAKE) -C user-guide
+ 
+ install:
+ 	mkdir -p $(DESTDIR)$(MANDIR)/man8/ $(DESTDIR)$(MANDIR)/man5/

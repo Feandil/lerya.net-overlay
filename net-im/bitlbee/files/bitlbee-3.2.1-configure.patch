@@ -1,0 +1,17 @@
+--- a/configure
++++ b/configure
+@@ -612,14 +612,6 @@
+ 	fi
+ fi
+ 
+-case "$CC" in
+-*gcc* )
+-	echo CFLAGS+=-MMD -MF .depend/\$@.d >> Makefile.settings
+-	for i in . lib tests protocols protocols/*/; do
+-		mkdir -p $i/.depend
+-	done
+-esac
+-
+ if [ "$msn" = 0 ]; then
+ 	echo '#undef WITH_MSN' >> config.h
+ else

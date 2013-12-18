@@ -1,0 +1,10 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -66,6 +66,3 @@ endif()
+ include_directories(${HIDAPI_HEADER_DIR})
+
+ add_subdirectory(libtempered)
+-add_subdirectory(libtempered-util)
+-add_subdirectory(utils)
+-add_subdirectory(examples)
+

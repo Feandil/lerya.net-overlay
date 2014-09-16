@@ -434,7 +434,9 @@ webapp_pkg_setup() {
 		ewarn "This ebuild may be overwriting important files."
 		ewarn
 		echo
-		ebeep 10
+		if has "${EAPI:-0}" 0 1 2; then
+			ebeep 10
+		fi
 	elif [[ "$(echo ${my_output} | awk '{ print $1 }')" != "${PN}" ]]; then
 		echo
 		eerror "You already have ${my_output} installed in ${my_dir}"

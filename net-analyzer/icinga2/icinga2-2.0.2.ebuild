@@ -13,7 +13,7 @@ SRC_URI="http://github.com/Icinga/icinga2/archive/v${PV}.tar.gz -> ${P}.tar.gz"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
-IUSE="+mysql classicui postgres +plugins web"
+IUSE="+mysql classicui postgres +plugins web vim-syntax nano-syntax"
 
 DEPEND="dev-util/cmake
 		dev-libs/openssl
@@ -101,6 +101,17 @@ src_install() {
 
 	fowners icinga:icinga /var/lib/icinga || die "Failed chown of /var/lib/icinga"
 	fowners icinga:icinga /var/lib/icinga2 || die "Failed chown of /var/lib/icinga2"
+
+	if use vim-syntax; then
+		insinto /usr/share/vim/vimfiles
+		doins -r tools/syntax/vim/ftdetect
+		doins -r tools/syntax/vim/syntax
+	fi
+
+	if use nano-syntax; then
+		insinto /usr/share/nano
+		doins tools/syntax/nano/icinga2.nanorc
+	fi
 }
 
 pkg_postinst() {

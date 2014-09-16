@@ -1,0 +1,281 @@
+--- a/WebappConfig/config.py
++++ b/WebappConfig/config.py
+@@ -292,6 +292,7 @@ class Config:
+             'my_serverconfigdir': '${my_appdir}/conf',
+             'wa_configlist'     : '${my_appdir}/config-files',
+             'wa_solist'         : '${my_appdir}/server-owned-files',
++            'wa_sodlist'        : '${my_appdir}/server-owned-dirs',
+             'wa_virtuallist'    : '${my_appdir}/virtuals',
+             'wa_installs'       : '${my_persistdir}/${wa_installsbase}',
+             'wa_postinstallinfo':
+--- a/WebappConfig/content.py
++++ b/WebappConfig/content.py
+@@ -230,6 +230,7 @@ class Contents:
+ 
+                 if ok and not line_split[2] in ['virtual',
+                                                 'server-owned',
++                                                'server-owned-dir',
+                                                 'config-owned',
+                                                 'default-owned',
+                                                 'config-server-owned',
+--- a/WebappConfig/db.py
++++ b/WebappConfig/db.py
+@@ -555,10 +555,11 @@ class WebappSource(AppHierarchy):
+         self.ignore = []
+ 
+     def read(self,
+-             config_owned  = 'config-files',
+-             server_owned  = 'server-owned-files',
+-             virtual_files = 'virtual',
+-             default_dirs  = 'default-owned'):
++             config_owned    = 'config-files',
++             server_owned    = 'server-owned-files',
++             server_owned_r  = 'server-owned-dirs',
++             virtual_files   = 'virtual',
++             default_dirs    = 'default-owned'):
+         '''
+         Initialize the type cache.
+ 
+@@ -577,7 +578,8 @@ class WebappSource(AppHierarchy):
+         '''
+         import WebappConfig.filetype
+ 
+-        server_files = []
++        self.server_files = []
++        self.server_dirs  = [] 
+         config_files = []
+ 
+         if os.access(self.appdir() + '/' + config_owned, os.R_OK):
+@@ -590,32 +592,41 @@ class WebappSource(AppHierarchy):
+ 
+         if os.access(self.appdir() + '/' + server_owned, os.R_OK):
+             flist = open(self.appdir() + '/' + server_owned)
+-            server_files = flist.readlines()
++            self.server_files = flist.readlines()
+ 
+             OUT.debug('Identified server-owned files.', 7)
+ 
+             flist.close()
+ 
++        if os.access(self.appdir() + '/' + server_owned_r, os.R_OK):
++            flist = open(self.appdir() + '/' + server_owned_r)
++            self.server_dirs = flist.readlines()
++
++            OUT.debug('Identified server-owned directories.', 7)
++
++            flist.close()
++
+         self.__types = WebappConfig.filetype.FileType(config_files,
+-                                                      server_files,
++                                                      self.server_files,
++                                                      self.server_dirs,
+                                                       virtual_files,
+                                                       default_dirs)
+ 
+-    def filetype(self, filename):
++    def filetype(self, filename, parent_type = ''):
+         ''' Determine filetype for the given file.'''
+         if self.__types:
+ 
+             OUT.debug('Returning file type', 7)
+ 
+-            return self.__types.filetype(filename)
++            return self.__types.filetype(filename, parent_type)
+ 
+-    def dirtype(self, directory):
++    def dirtype(self, directory, parent_type = ''):
+         ''' Determine filetype for the given directory.'''
+         if self.__types:
+ 
+             OUT.debug('Returning directory type', 7)
+ 
+-            return self.__types.dirtype(directory)
++            return self.__types.dirtype(directory, parent_type)
+ 
+     def source_exists(self, directory):
+         '''
+--- a/WebappConfig/filetype.py
++++ b/WebappConfig/filetype.py
+@@ -115,6 +115,7 @@ class FileType:
+     def __init__(self,
+                  config_owned,
+                  server_owned,
++                 server_owned_r,
+                  virtual_files = 'virtual',
+                  default_dirs  = 'default-owned'):
+         '''
+@@ -149,13 +150,27 @@ class FileType:
+ 
+                 self.__cache[self.__fix(i)] = 'server-owned'
+ 
++        for i in server_owned_r:
+ 
+-    def filetype(self, filename):
++            if self.__fix(i) in self.__cache.keys():
++
++                OUT.die('{} is a the same time recursively server-owned and {}: This case is not supported.'.format(self.__fix(i), self.__cache[self.__fix(i)]))
++
++            else :
++
++                OUT.debug('Adding recursively server-owned file', 8)
++
++                self.__cache[self.__fix(i).strip()] = 'server-owned-dir'
++
++
++    def filetype(self, filename, parent_type = ''):
+         '''
+         Inputs:
+ 
+           filename      - the file that we need a decision about
+ 
++          parent_type  - the type of the parent directory
++
+         returns one of these:
+ 
+           server-owned         - file needs to be owned by the webserver user
+@@ -176,24 +191,39 @@ class FileType:
+         # remove any whitespace and trailing /
+         filename = self.__fix(filename)
+ 
+-        # look for config-protected files in the cache
++        # check the cache
+         if filename in self.__cache.keys():
++            # Check if parent type is recursive
++            if parent_type == 'server-owned-dir':
++                new_type = self.__cache[filename]
++                if new_type == 'config-owned':
++                    return 'config-server-owned'
++                if new_type == 'server-owned':
++                    OUT.warn('Configuration error: {} is marked server-owned twice'.format(filename))
++                return 'server-owned' 
+             return self.__cache[filename]
+ 
++        # Check if parent type is recursive
++        if parent_type == 'server-owned-dir':
++            return 'server-owned'
+         # unspecified file (and thus virtual)
+         return self.__virtual_files
+ 
+-    def dirtype(self, directory):
++    def dirtype(self, directory, parent_type = ''):
+         '''
+         Inputs:
+ 
+           directory     - the directory that we need a decision about
+ 
++          parent_type  - the type of the parent directory
++
+         returns one of these:
+ 
+           server-owned         - dir needs to be owned by the webserver user
+           config-owned         - dir needs to be owned by the config user
+           config-server-owned  - Both the previous cases at the same time
++          server-owned-dir     - Directory that contains file/dirs to be owned
++                                 by the webserver user
+           default-owned        - we need a local copy, owned by root
+ 
+         NOTE:
+@@ -209,8 +239,19 @@ class FileType:
+ 
+         # check the cache
+         if directory in self.__cache.keys():
++            # Check if parent type is recursive
++            if parent_type == 'server-owned-dir':
++                new_type = self.__cache[directory]
++                if new_type == 'config-owned':
++                    OUT.die('This version does not support config dirs')
++                if new_type == server-owned:
++                    OUT.warn('Configuration error: {} is marked server-owned two times'.format(filename))
++                return 'server-owned-dir'
+             return self.__cache[directory]
+ 
++        # Check if parent type is recursive
++        if parent_type == 'server-owned-dir':
++            return 'server-owned-dir'
+         # unspecified directories are default-owned
+         return self.__default_dirs
+ 
+--- a/WebappConfig/server.py
++++ b/WebappConfig/server.py
+@@ -79,6 +79,8 @@ class Basic:
+             permissions['file']['config-server-owned'][1] = self.vhost_server_gid
+             permissions['dir']['config-server-owned'][1]  = self.vhost_server_gid
+ 
++        permissions['dir']['server-owned-dir'] = permissions['dir']['server-owned']
++
+         self.__perm      = permissions
+         self.__handler   = handler
+         self.__flags     = flags
+--- a/WebappConfig/worker.py
++++ b/WebappConfig/worker.py
+@@ -290,7 +290,7 @@ class WebappAdd:
+ 
+         os.umask(0)
+ 
+-    def mkdirs(self, directory = ''):
++    def mkdirs(self, directory = '', current_type = ''):
+         '''
+         Create a set of directories
+ 
+@@ -321,20 +321,20 @@ class WebappAdd:
+             OUT.debug('Handling directory', 7)
+ 
+             # create directory first
+-            self.mkdir(directory + '/' + i)
++            next_type = self.mkdir(directory + '/' + i, current_type)
+ 
+             # then recurse into the directory
+-            self.mkdirs(directory + '/' + i)
++            self.mkdirs(directory + '/' + i, next_type)
+ 
+         for i in self.__ws.get_source_files(sd):
+ 
+             OUT.debug('Handling file', 7)
+ 
+             # handle the file
+-            self.mkfile(directory + '/' + i)
++            self.mkfile(directory + '/' + i, current_type)
+ 
+ 
+-    def mkdir(self, directory):
++    def mkdir(self, directory, current_type):
+         '''
+         Create a directory with the correct ownership and permissions.
+ 
+@@ -362,7 +362,7 @@ class WebappAdd:
+             if not self.__p:
+                 os.unlink(dst_dir)
+ 
+-        dirtype = self.__ws.dirtype(src_dir)
++        dirtype = self.__ws.dirtype(src_dir, current_type)
+ 
+         OUT.debug('Checked directory type', 8)
+ 
+@@ -388,7 +388,9 @@ class WebappAdd:
+                            directory,
+                            self.__relative)
+ 
+-    def mkfile(self, filename):
++        return dirtype
++
++    def mkfile(self, filename, current_type):
+         '''
+         This is what we are all about.  No more games - lets take a file
+         from the master image of the web-based app, and make it available
+@@ -401,7 +403,7 @@ class WebappAdd:
+         OUT.debug('Creating file', 6)
+ 
+         dst_name  = self.__destd + '/' + filename
+-        file_type = self.__ws.filetype(self.__sourced + '/' + filename)
++        file_type = self.__ws.filetype(self.__sourced + '/' + filename, current_type)
+ 
+         OUT.debug('File type determined', 7)
+ 
+@@ -594,6 +596,7 @@ class WebappAdd:
+                            dst_name,
+                            self.__relative)
+ 
++        return file_type
+ 
+ if __name__ == '__main__':
+     import doctest, sys

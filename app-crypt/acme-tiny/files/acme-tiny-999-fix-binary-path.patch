@@ -1,0 +1,20 @@
+--- a/renew_cert.sh	2017-01-09 21:59:13.361627194 +0100
++++ b/renew_cert.sh	2017-01-09 22:04:21.525066860 +0100
+@@ -2,7 +2,7 @@
+ # Renew every generated certificates.
+ # Run this script and then reload the web server.
+ 
+-ACMETINY_DIR="$(dirname -- "$0")"
++ACMETINY_DIR=/opt/acme-tiny
+ CERT_DIR="$ACMETINY_DIR/certs"
+ ACME_DIR=/var/www/acme-challenges/
+ 
+@@ -51,7 +51,7 @@
+     TS="$(date '+%Y-%m-%d_%H-%M-%S')"
+ 
+     echo "[ ] Renewing $DOMAIN"
+-    if ! python "$ACMETINY_DIR/acme_tiny.py" \
++    if ! python "/usr/bin/acme_tiny.py" \
+         --account-key "$ACMETINY_DIR/account.key" \
+         --csr "$CSRFILE" \
+         --acme-dir "$ACME_DIR" > "$CERT_DIR/${TS}_$DOMAIN.crt"

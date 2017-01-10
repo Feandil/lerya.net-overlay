@@ -7,7 +7,7 @@
 -ACMETINY_DIR="$(dirname -- "$0")"
 +ACMETINY_DIR=/opt/acme-tiny
  CERT_DIR="$ACMETINY_DIR/certs"
- ACME_DIR=/var/www/acme-challenges/
+ ACME_DIR="$ACMETINY_DIR/acme-challenges/"
  
 @@ -51,7 +51,7 @@
      TS="$(date '+%Y-%m-%d_%H-%M-%S')"

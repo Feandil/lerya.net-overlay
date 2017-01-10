@@ -39,9 +39,10 @@ src_install() {
 	doexe renew_cert.sh
 
 	dodir /opt/acme-tiny/certs
-	dodir /var/www/acme-challenges/
-	fowners nginx:acme-tiny /var/www/acme-challenges/
-	fperms 570 /var/www/acme-challenges/
+
+	dodir /opt/acme-tiny/acme-challenges/
+	fowners nginx:acme-tiny /opt/acme-tiny/acme-challenges/
+	fperms 570 /opt/acme-tiny/acme-challenges/
 
 	python_foreach_impl python_doscript acme_tiny.py
 }

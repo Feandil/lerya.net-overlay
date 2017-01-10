@@ -1,0 +1,6 @@
+/opt/acme-tiny(/.*)?                  gen_context(system_u:object_r:acmetiny_opt_t)
+/opt/acme-tiny/renew_cert.sh          gen_context(system_u:object_r:acmetiny_exec_t)
+/opt/acme-tiny/certs(/.*)?            gen_context(system_u:object_r:acmetiny_certs_t)
+/opt/acme-tiny/acme-challenges(/.*)?  gen_context(system_u:object_r:acmetiny_httpd_t)
+/opt/acme-tiny/account.key            gen_context(system_u:object_r:acmetiny_key_t)
+

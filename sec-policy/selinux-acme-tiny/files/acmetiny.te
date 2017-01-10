@@ -1,0 +1,69 @@
+policy_module(acmetiny, 1.0.0)
+
+########################################
+#
+# Declarations
+#
+
+type acmetiny_t;
+type acmetiny_exec_t;
+init_daemon_domain(acmetiny_t, acmetiny_exec_t)
+cron_system_entry(acmetiny_t, acmetiny_exec_t)
+
+type acmetiny_opt_t;
+files_type(acmetiny_opt_t)
+
+type acmetiny_key_t;
+files_auth_file(acmetiny_key_t)
+
+type acmetiny_certs_t;
+miscfiles_cert_type(acmetiny_certs_t)
+
+type acmetiny_httpd_t;
+files_type(acmetiny_httpd_t)
+
+########################################
+#
+# Rules
+#
+
+allow acmetiny_t self:fifo_file rw_fifo_file_perms;
+
+corecmd_exec_bin(acmetiny_t)
+corecmd_exec_shell(acmetiny_t)
+files_read_etc_files(acmetiny_t)
+files_read_etc_runtime_files(acmetiny_t)
+kernel_read_system_state(acmetiny_t)
+miscfiles_read_generic_certs(acmetiny_t)
+miscfiles_read_localization(acmetiny_t)
+
+sysnet_dns_name_resolve(acmetiny_t)
+corenet_tcp_connect_http_port(acmetiny_t)
+corenet_tcp_sendrecv_http_port(acmetiny_t)
+
+list_dirs_pattern(acmetiny_t, acmetiny_opt_t, acmetiny_opt_t)
+read_files_pattern(acmetiny_t, acmetiny_key_t, acmetiny_key_t)
+manage_files_pattern(acmetiny_t, acmetiny_certs_t, acmetiny_certs_t)
+manage_lnk_files_pattern(acmetiny_t, acmetiny_certs_t, acmetiny_certs_t)
+manage_files_pattern(acmetiny_t, acmetiny_httpd_t, acmetiny_httpd_t)
+
+########################################
+#
+# External dependecies
+#
+
+require {
+        type nginx_t;
+}
+
+list_dirs_pattern(nginx_t, acmetiny_opt_t, acmetiny_opt_t)
+read_files_pattern(nginx_t, acmetiny_certs_t, acmetiny_certs_t)
+read_lnk_files_pattern(nginx_t, acmetiny_certs_t, acmetiny_certs_t)
+read_files_pattern(nginx_t, acmetiny_httpd_t, acmetiny_httpd_t)
+
+require {
+        type crond_t;
+}
+
+list_dirs_pattern(crond_t, acmetiny_opt_t, acmetiny_opt_t)
+

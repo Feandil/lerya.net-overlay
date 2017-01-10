@@ -34,11 +34,14 @@ src_prepare() {
 
 src_install() {
 	dodir /opt/acme-tiny
+	fowners root:root /opt/acme-tiny
 
 	exeinto /opt/acme-tiny
 	doexe renew_cert.sh
 
 	dodir /opt/acme-tiny/certs
+	fowners acme-tiny: /opt/acme-tiny/certs
+	fperms 755 /opt/acme-tiny/certs
 
 	dodir /opt/acme-tiny/acme-challenges/
 	fowners nginx:acme-tiny /opt/acme-tiny/acme-challenges/

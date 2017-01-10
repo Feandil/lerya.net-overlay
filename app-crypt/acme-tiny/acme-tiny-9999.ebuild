@@ -18,7 +18,8 @@ KEYWORDS="~amd64 ~x86"
 IUSE="selinux"
 
 DEPEND="dev-libs/openssl
-	www-servers/nginx"
+	www-servers/nginx
+	selinux? ( sec-policy/selinux-acme-tiny )"
 
 pkg_setup() {
         ebegin "Creating acme-tiny group and user"

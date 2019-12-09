@@ -1,71 +1,29 @@
---- a/WebappConfig/db.py
-+++ b/WebappConfig/db.py
-@@ -537,8 +535,8 @@
-         '''
-         import WebappConfig.filetype
- 
--        server_files = []
--        server_dirs  = [] 
-+        self.server_files = []
-+        self.server_dirs  = [] 
-         config_files = []
- 
-         if os.access(self.appdir() + '/' + config_owned, os.R_OK):
-@@ -549,7 +549,7 @@ class WebappSource(AppHierarchy):
-
-         if os.access(self.appdir() + '/' + server_owned, os.R_OK):
-             flist = open(self.appdir() + '/' + server_owned)
--            server_files = flist.readlines()
-+            self.server_files = flist.readlines()
-
-             OUT.debug('Identified server-owned files.', 7)
-
-@@ -557,15 +557,15 @@ class WebappSource(AppHierarchy):
-
-         if os.access(self.appdir() + '/' + server_owned_r, os.R_OK):
-             flist = open(self.appdir() + '/' + server_owned_r)
--            server_dirs = flist.readlines()
-+            self.server_dirs = flist.readlines()
-
-             OUT.debug('Identified server-owned directories.', 7)
-
-             flist.close()
-
-         self.__types = WebappConfig.filetype.FileType(config_files,
--                                                      server_files,
--                                                      server_dirs,
-+                                                      self.server_files,
-+                                                      self.server_dirs,
-                                                       virtual_files,
-                                                       default_dirs)
-
 --- a/WebappConfig/config.py
 +++ b/WebappConfig/config.py
-@@ -293,6 +293,7 @@ class Config:
-             'wa_installs'       : '%(my_persistdir)s/%(wa_installsbase)s',
+@@ -296,6 +296,7 @@ class Config:
+             'wa_installs'       : '${my_persistdir}/${wa_installsbase}',
              'wa_postinstallinfo':
-             '%(my_appdir)s/post-install-instructions.txt',
+             '${my_appdir}/post-install-instructions.txt',
 +            'g_selinux'         : 'no',
              }
-
+ 
          # Setup basic defaults
-@@ -541,6 +542,15 @@ class Config:
-                          'rt all values of DEFAULT_DIRS and will report a'
-                          'n error')
-
-+        group.add_option('--selinux-module',
-+                         type = 'choice',
-+                         choices = ['yes',
-+                                    'no'],
-+                         help = 'If activated, webapp-config will use a S'
-+                         'ELinux module to set the file context of server'
-+                         ' owned files to \'httpd_sys_rw_content_t\'. Def'
-+                         'ault is' + self.config.get('USER', 'g_selinux'))
+@@ -562,6 +563,14 @@ class Config:
+                               'rt all values of DEFAULT_DIRS and will report a'
+                               'n error')
+ 
++        inst_opts.add_argument('--selinux-module',
++                               choices = ['yes',
++                                          'no'],
++                               help = 'If activated, webapp-config will use a S'
++                               'ELinux module to set the file context of server'
++                               ' owned files to \'httpd_sys_rw_content_t\'. Def'
++                               'ault is' + self.config.get('USER', 'g_selinux'))
 +
-         self.parser.add_option_group(group)
-
+ 
          #-----------------------------------------------------------------
-@@ -874,7 +884,9 @@ class Config:
+         # Information Options
+@@ -906,7 +915,9 @@ class Config:
                              'default_dirs' : 'vhost_config_default_dirs',
                              'pretend'      : 'g_pretend',
                              'verbose'      : 'g_verbose',
@@ -73,10 +31,10 @@
 +                            'bug_report'   : 'g_bugreport',
 +                            'selinux'      : 'g_selinux',
 +                           }
-
-         for i in option_to_config.keys():
-             if i in options.__dict__ and options.__dict__[i]:
-@@ -1496,7 +1508,9 @@ class Config:
+ 
+         for key in option_to_config:
+             if key in options and options[key]:
+@@ -1613,7 +1624,9 @@ class Config:
                   'orig'     : self.maybe_get('g_orig_installdir'),
                   'upgrade'  : self.upgrading(),
                   'verbose'  : self.verbose(),
@@ -84,12 +42,12 @@
 +                 'pretend'  : self.pretend(),
 +                 'selinux'  : self.maybe_get('g_selinux') == 'yes',
 +                }
-
+ 
          return allowed_servers[server](directories,
                                         self.create_permissions(),
 --- /dev/null
 +++ b/WebappConfig/selinux.py
-@@ -0,0 +1,91 @@
+@@ -0,0 +1,92 @@
 +#!/usr/bin/python -O
 +#
 +# /usr/sbin/webapp-config
@@ -128,7 +86,7 @@
 +        self.vhost_hostname = vhost_hostname
 +        self.policy_name = '{}_{}'.format(package_name, vhost_hostname)
 +        self.policy_types = policy_types
-+        if self.policy_types is ():
++        if not self.policy_types:
 +            for filename in MAKE_CONF_FILE:
 +                try:
 +                    with open(filename) as file:
@@ -140,7 +98,7 @@
 +                            break
 +                except IOError:
 +                    pass
-+            if self.policy_types is ():
++            if not self.policy_types:
 +                 OUT.die('No SELinux policy was found, abording')
 +
 +    def remove_module(self):
@@ -152,11 +110,12 @@
 +    def create_module(self, package_version, vhost_root, server_files, server_dirs):
 +        temp_dir = tempfile.mkdtemp()
 +        OUT.info('Creating SELinux modules')
++        cleaned_version = re.match(r'(?P<version>[0-9]*\.[0-9]*(?:\.[0-9]*)?)', package_version).group('version')
 +        for policy in self.policy_types:
 +            base_dir = os.path.join(temp_dir, policy)
 +            os.mkdir(base_dir)
 +            with open(os.path.join(base_dir, '{}.te'.format(self.policy_name)), 'w') as te_file:
-+                te_file.write('policy_module({},{})\n'.format(self.policy_name, package_version))
++                te_file.write('policy_module({},{})\n'.format(self.policy_name, cleaned_version))
 +                te_file.write('require {\n')
 +                te_file.write('  type httpd_sys_rw_content_t;\n')
 +                te_file.write('}')
@@ -183,18 +142,18 @@
 +        return re.sub('\.', '\.', string)
 --- a/WebappConfig/server.py
 +++ b/WebappConfig/server.py
-@@ -24,6 +24,7 @@ import os, os.path
- from WebappConfig.debug        import OUT
+@@ -25,6 +25,7 @@ from WebappConfig.debug        import OUT
+ from WebappConfig.eprefix      import EPREFIX
  from WebappConfig.worker       import WebappRemove, WebappAdd
  from WebappConfig.permissions  import get_group, get_user
 +from WebappConfig.selinux      import SELinux
-
+ 
  from WebappConfig.wrapper      import package_installed
-
-@@ -95,6 +96,11 @@ class Basic:
+ 
+@@ -96,6 +97,11 @@ class Basic:
          self.__v         = flags['verbose']
          self.__p         = flags['pretend']
-
+ 
 +        if flags['selinux']:
 +            self.__selinux = SELinux(self.__ws.pn, flags['host'])
 +        else:
@@ -203,22 +162,22 @@
          wd = WebappRemove(self.__content,
                            self.__v,
                            self.__p)
-@@ -176,6 +182,11 @@ class Basic:
-
+@@ -177,6 +183,11 @@ class Basic:
+ 
          self.__db.remove(self.__destd)
-
+ 
 +        # Remove the selinux module
 +
 +        if self.__selinux is not None:
 +            self.__selinux.remove_module()
 +
          # did we leave anything behind?
-
+ 
          if self.file_behind_flag:
-@@ -188,6 +199,13 @@ class Basic:
-
+@@ -189,6 +200,13 @@ class Basic:
+ 
          OUT.debug('Basic server install', 7)
-
+ 
 +        # Create the selinux module
 +
 +        if self.__selinux is not None:
@@ -227,18 +186,17 @@
 +                                         self.__ws.server_dirs)
 +
          # The root of the virtual install location needs to exist
-
+ 
          if not os.path.isdir(self.__destd) and not self.__p:
-@@ -314,6 +314,11 @@ class Basic:
-
+@@ -297,6 +315,11 @@ class Basic:
+ 
          self.__content.write()
-
+ 
 +        # Warn the user about needed relabelling
 +
 +        OUT.warn('You probably need to relabel the new installation, using for'
 +                 'example "restorecon -R ' + self.__destd + '"')
 +
          # and we're done
-
+ 
          OUT.info('Install completed - success', 1)
-

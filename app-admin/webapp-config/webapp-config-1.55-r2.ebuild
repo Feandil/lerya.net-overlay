@@ -1,14 +1,15 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=7
 
-PYTHON_COMPAT=( python{2_7,3_5,3_6,3_7} pypy )
+DISTUTILS_USE_SETUPTOOLS=no
+PYTHON_COMPAT=( python3_{7..10} )
 
 inherit distutils-r1 prefix
 
 SRC_URI="https://dev.gentoo.org/~twitch153/${PN}/${P}.tar.bz2"
-KEYWORDS="alpha amd64 arm ~arm64 hppa ia64 ~m68k ~mips ppc ppc64 s390 ~sh sparc x86"
+KEYWORDS="~alpha amd64 arm ~arm64 ~hppa ~ia64 ~m68k ~mips ppc ppc64 ~s390 sparc x86"
 
 DESCRIPTION="Gentoo's installer for web-based applications"
 HOMEPAGE="https://sourceforge.net/projects/webapp-config/"
@@ -24,8 +25,9 @@ RDEPEND="
 	portage? ( sys-apps/portage[${PYTHON_USEDEP}] )"
 
 python_prepare_all() {
-	epatch "${FILESDIR}/webapp-config-1.55-manage-recursive-server-owned-files-independently.patch" || die "Patch failed"
-	epatch "${FILESDIR}/webapp-config-1.55-add-SELinux-support.patch" || die "Patch failed"
+	eapply "${FILESDIR}/webapp-config-1.55-manage-recursive-server-owned-files-independently.patch" || die "Patch failed"
+	eapply "${FILESDIR}/webapp-config-1.55-add-SELinux-support.patch" || die "Patch failed"
+        eapply_user
 	if use selinux; then
 		sed -i -e "s/'g_selinux'         : 'no',/'g_selinux'         : 'yes',/" ${WORKDIR}/${P}/WebappConfig/config.py || die "Unable to activate selinux by default"
 	fi
@@ -58,12 +60,11 @@ python_install_all() {
 
 	dodoc AUTHORS
 	doman doc/*.[58]
-	dohtml doc/*.[58].html
 }
 
 python_test() {
-	PYTHONPATH="." "${PYTHON}" WebappConfig/tests/external.py \
-		|| die "Testing failed with ${EPYTHON}"
+	PYTHONPATH="." "${EPYTHON}" WebappConfig/tests/external.py -v ||
+		die "Testing failed with ${EPYTHON}"
 }
 
 pkg_postinst() {

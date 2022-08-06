@@ -3,8 +3,8 @@
 # $Id$
 
 EAPI=6
-EGIT_REPO_URI="git://github.com/Feandil/acme-tiny.git"
-PYTHON_COMPAT=(python{2_7,3_4,3_5})
+EGIT_REPO_URI="https://github.com/Feandil/acme-tiny.git"
+PYTHON_COMPAT=(python{3_9,3_10,3_11})
 
 inherit user git-r3 python-r1 eutils
 
@@ -17,7 +17,7 @@ SLOT="0"
 KEYWORDS="~amd64 ~x86"
 IUSE="selinux"
 
-DEPEND="dev-libs/libressl
+DEPEND="dev-libs/openssl
 	www-servers/nginx
 	selinux? ( sec-policy/selinux-acme-tiny )"
 

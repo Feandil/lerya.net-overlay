@@ -1,28 +1,40 @@
-# Copyright 1999-2011 Gentoo Foundation
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/eclass/webapp.eclass,v 1.70 2011/12/27 17:55:12 fauli Exp $
 
 # @ECLASS: webapp.eclass
 # @MAINTAINER:
 # web-apps@gentoo.org
+# @SUPPORTED_EAPIS: 5 6 7 8
 # @BLURB: functions for installing applications to run under a web server
 # @DESCRIPTION:
 # The webapp eclass contains functions to handle web applications with
 # webapp-config. Part of the implementation of GLEP #11
 
-# @ECLASS-VARIABLE: WEBAPP_DEPEND
+case ${EAPI:-0} in
+	[5678]) ;;
+	*) die "${ECLASS}: EAPI ${EAPI:-0} not supported" ;;
+esac
+
+EXPORT_FUNCTIONS pkg_postinst pkg_setup src_install pkg_prerm
+
+if [[ -z ${_WEBAPP_ECLASS} ]]; then
+_WEBAPP_ECLASS=1
+
+# @ECLASS_VARIABLE: WEBAPP_DEPEND
 # @DESCRIPTION:
 # An ebuild should use WEBAPP_DEPEND if a custom DEPEND needs to be built, most
 # notably in combination with WEBAPP_OPTIONAL.
-WEBAPP_DEPEND=">=app-admin/webapp-config-1.50.15"
+WEBAPP_DEPEND="app-admin/webapp-config"
 
-# @ECLASS-VARIABLE: WEBAPP_NO_AUTO_INSTALL
+# @ECLASS_VARIABLE: WEBAPP_NO_AUTO_INSTALL
+# @PRE_INHERIT
 # @DESCRIPTION:
 # An ebuild sets this to `yes' if an automatic installation and/or upgrade is
 # not possible. The ebuild should overwrite pkg_postinst() and explain the
 # reason for this BEFORE calling webapp_pkg_postinst().
 
-# @ECLASS-VARIABLE: WEBAPP_OPTIONAL
+# @ECLASS_VARIABLE: WEBAPP_OPTIONAL
+# @PRE_INHERIT
 # @DESCRIPTION:
 # An ebuild sets this to `yes' to make webapp support optional, in which case
 # you also need to take care of USE-flags and dependencies.
@@ -34,8 +46,6 @@ if [[ "${WEBAPP_OPTIONAL}" != "yes" ]]; then
 	RDEPEND="${DEPEND}"
 fi
 
-EXPORT_FUNCTIONS pkg_postinst pkg_setup src_install pkg_prerm
-
 INSTALL_DIR="/${PN}"
 IS_UPGRADE=0
 IS_REPLACE=0
@@ -43,9 +53,9 @@ IS_REPLACE=0
 INSTALL_CHECK_FILE="installed_by_webapp_eclass"
 SETUP_CHECK_FILE="setup_by_webapp_eclass"
 
-ETC_CONFIG="${ROOT}etc/vhosts/webapp-config"
-WEBAPP_CONFIG="${ROOT}usr/sbin/webapp-config"
-WEBAPP_CLEANER="${ROOT}usr/sbin/webapp-cleaner"
+ETC_CONFIG="${ROOT%/}/etc/vhosts/webapp-config"
+WEBAPP_CONFIG="${ROOT%/}/usr/sbin/webapp-config"
+WEBAPP_CLEANER="${ROOT%/}/usr/sbin/webapp-cleaner"
 
 # ==============================================================================
 # INTERNAL FUNCTIONS
@@ -249,7 +259,7 @@ webapp_postupgrade_txt() {
 	cp "${2}" "${D}/${MY_APPDIR}/postupgrade-${1}.txt"
 }
 
-# helpers for webapp_serverowned()
+# helper for webapp_serverowned()
 _webapp_serverowned() {
 	debug-print-function $FUNCNAME $*
 
@@ -257,7 +267,6 @@ _webapp_serverowned() {
 	local my_file="$(webapp_strip_appdir "${1}")"
 	my_file="$(webapp_strip_cwd "${my_file}")"
 
-	elog "(server owned) ${my_file}"
 	echo "${my_file}" >> "${D}/${WA_SOLIST}"
 }
 
@@ -268,7 +277,6 @@ _webapp_recursive_serverowned() {
 	local my_dir="$(webapp_strip_appdir "${1}")"
 	my_dir="$(webapp_strip_cwd "${my_dir}")"
 
-	elog "(server recursively owned) ${my_dir}"
 	echo "${my_dir}" >> "${D}/${WA_SODLIST}"
 }
 
@@ -360,12 +368,12 @@ webapp_src_preinst() {
 		eerror "This ebuild did not call webapp_pkg_setup() at the beginning"
 		eerror "of the pkg_setup() function"
 		eerror
-		eerror "Please log a bug on http://bugs.gentoo.org"
+		eerror "Please log a bug on https://bugs.gentoo.org"
 		eerror
 		eerror "You should use emerge -C to remove this package, as the"
 		eerror "installation is incomplete"
 		eerror
-		die "Ebuild did not call webapp_pkg_setup() - report to http://bugs.gentoo.org"
+		die "Ebuild did not call webapp_pkg_setup() - report to https://bugs.gentoo.org"
 	fi
 
 	# Hint, see the webapp_read_config() function to find where these are
@@ -388,7 +396,7 @@ webapp_src_preinst() {
 # @DESCRIPTION:
 # The default pkg_setup() for this eclass. This will gather required variables
 # from webapp-config and check if there is an application installed to
-# `${ROOT}/var/www/localhost/htdocs/${PN}/' if USE=vhosts is not set.
+# `${ROOT%/}/var/www/localhost/htdocs/${PN}/' if USE=vhosts is not set.
 #
 # You need to call this function BEFORE anything else has run in your custom
 # pkg_setup().
@@ -412,7 +420,7 @@ webapp_pkg_setup() {
 	G_HOSTNAME="localhost"
 	webapp_read_config
 
-	local my_dir="${ROOT}${VHOST_ROOT}/${MY_HTDOCSBASE}/${PN}"
+	local my_dir="${ROOT%/}/${VHOST_ROOT}/${MY_HTDOCSBASE}/${PN}"
 
 	# if USE=vhosts is enabled OR no application is installed we're done here
 	if ! has vhosts ${IUSE} || use vhosts || [[ ! -d "${my_dir}" ]]; then
@@ -434,9 +442,6 @@ webapp_pkg_setup() {
 		ewarn "This ebuild may be overwriting important files."
 		ewarn
 		echo
-		if has "${EAPI:-0}" 0 1 2; then
-			ebeep 10
-		fi
 	elif [[ "$(echo ${my_output} | awk '{ print $1 }')" != "${PN}" ]]; then
 		echo
 		eerror "You already have ${my_output} installed in ${my_dir}"
@@ -472,14 +477,14 @@ webapp_src_install() {
 	chmod -R g-s "${D}/"
 
 	keepdir "${MY_PERSISTDIR}"
-	fowners "root:0" "${MY_PERSISTDIR}"
+	fowners "0:0" "${MY_PERSISTDIR}"
 	fperms 755 "${MY_PERSISTDIR}"
 }
 
 # @FUNCTION: webapp_pkg_postinst
 # @DESCRIPTION:
 # The default pkg_postinst() for this eclass. This installs the web application to
-# `${ROOT}/var/www/localhost/htdocs/${PN}/' if USE=vhosts is not set. Otherwise
+# `${ROOT%/}/var/www/localhost/htdocs/${PN}/' if USE=vhosts is not set. Otherwise
 # display a short notice how to install this application with webapp-config.
 #
 # You need to call this function AFTER everything else has run in your custom
@@ -490,17 +495,17 @@ webapp_pkg_postinst() {
 	webapp_read_config
 
 	# sanity checks, to catch bugs in the ebuild
-	if [[ ! -f "${ROOT}${MY_APPDIR}/${INSTALL_CHECK_FILE}" ]]; then
+	if [[ ! -f "${ROOT%/}/${MY_APPDIR}/${INSTALL_CHECK_FILE}" ]]; then
 		eerror
 		eerror "This ebuild did not call webapp_src_install() at the end"
 		eerror "of the src_install() function"
 		eerror
-		eerror "Please log a bug on http://bugs.gentoo.org"
+		eerror "Please log a bug on https://bugs.gentoo.org"
 		eerror
 		eerror "You should use emerge -C to remove this package, as the"
 		eerror "installation is incomplete"
 		eerror
-		die "Ebuild did not call webapp_src_install() - report to http://bugs.gentoo.org"
+		die "Ebuild did not call webapp_src_install() - report to https://bugs.gentoo.org"
 	fi
 
 	if has vhosts ${IUSE}; then
@@ -601,3 +606,5 @@ webapp_pkg_prerm() {
 		echo
 	fi
 }
+
+fi

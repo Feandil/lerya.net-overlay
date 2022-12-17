@@ -1,0 +1,158 @@
+--- a/dns/check_dnssec_trace.c
++++ b/check_dnssec_trace.c
+@@ -41,7 +41,8 @@
+ #include <ldns/ldns.h>
+ 
+ /* Global Vars */
+-const char *hostname;
++const char *domain_hostname;
++const char *resolver_hostname;
+ char *domainname;
+ char *domaintrace = ".";
+ ldns_rr_list *trusted_keys = NULL;
+@@ -56,6 +57,7 @@
+     ldns_rdf        *rd_trace;
+     ldns_rdf        *rd_cdomain;
+     ldns_pkt        *pkt;
++    ldns_resolver   *dom_res;
+     ldns_resolver   *res;
+     ldns_rr         *rr;
+     ldns_rr_list    *rrl;
+@@ -117,25 +119,25 @@
+         printf("------------------------------------------------------------\n");
+     }
+ 
+-    /* create a new resolver with dns_server or server from /etc/resolv.conf */
+-    res = createResolver(hostname);
+-    if (!res) {
++    /* create a new resolver with domain_hostname or server from /etc/resolv.conf */
++    dom_res = createResolver(domain_hostname);
++    if (!dom_res) {
+         ldns_rdf_deep_free(rd_domain);
+         ldns_rdf_deep_free(rd_trace);
+         ldns_rr_list_deep_free(rrl_valid_keys);
+         unknown("Creating resolver failed.");
+     }
+-    resolverEnableDnssec(res);
+-    ldns_resolver_set_dnssec_anchors(res, rrl_valid_keys);
++    resolverEnableDnssec(dom_res);
++    ldns_resolver_set_dnssec_anchors(dom_res, rrl_valid_keys);
+ 
+     /* check domain exists */
+-    pkt = mp_ldns_resolver_query(res, rd_domain, LDNS_RR_TYPE_SOA,
++    pkt = mp_ldns_resolver_query(dom_res, rd_domain, LDNS_RR_TYPE_SOA,
+                               LDNS_RR_CLASS_IN, LDNS_RD);
+ 
+     if (pkt == NULL || ldns_pkt_get_rcode(pkt) != LDNS_RCODE_NOERROR) {
+         ldns_rdf_deep_free(rd_domain);
+         ldns_rdf_deep_free(rd_trace);
+-        ldns_resolver_deep_free(res);
++        ldns_resolver_deep_free(dom_res);
+         if (pkt && ldns_pkt_get_rcode(pkt) == LDNS_RCODE_NXDOMAIN) {
+             ldns_pkt_free(pkt);
+             critical("Domain '%s' don't exist.", domainname);
+@@ -151,7 +153,7 @@
+     if (rrl_domain_soa == NULL || ldns_rr_list_rr_count(rrl_domain_soa) == 0) {
+         ldns_rdf_deep_free(rd_domain);
+         ldns_rdf_deep_free(rd_trace);
+-        ldns_resolver_deep_free(res);
++        ldns_resolver_deep_free(dom_res);
+         ldns_pkt_free(pkt);
+         critical("Domain '%s' not found.", domainname);
+     }
+@@ -164,14 +166,14 @@
+         free(domaintrace);
+         ldns_rdf_deep_free(rd_domain);
+         ldns_rdf_deep_free(rd_trace);
+-        ldns_resolver_deep_free(res);
++        ldns_resolver_deep_free(dom_res);
+         ldns_pkt_free(pkt);
+         ldns_rr_list_deep_free(rrl_domain_soa);
+         critical("Domain '%s' not signed.", domainname);
+     }
+ 
+     ldns_pkt_free(pkt);
+-    pkt = ldns_resolver_query(res, rd_domain, LDNS_RR_TYPE_NS,
++    pkt = ldns_resolver_query(dom_res, rd_domain, LDNS_RR_TYPE_NS,
+             LDNS_RR_CLASS_IN, LDNS_RD);
+ 
+     rrl_domain_ns = ldns_pkt_rr_list_by_name_and_type(pkt, rd_domain,
+@@ -195,6 +197,22 @@
+         printf("------------------------------------------------------------\n");
+     }
+ 
++    /* create a new resolver with resolver_hostname or server from /etc/resolv.conf */
++    res = createResolver(resolver_hostname);
++    if (!res) {
++        ldns_rr_list_deep_free(rrl_domain_soa);
++        ldns_rr_list_deep_free(rrl_domain_soa_rrsig);
++        ldns_rr_list_deep_free(rrl_domain_ns);
++        ldns_rr_list_deep_free(rrl_domain_ns_rrsig);
++        ldns_rdf_deep_free(rd_domain);
++        ldns_rdf_deep_free(rd_trace);
++        ldns_rr_list_deep_free(rrl_valid_keys);
++        ldns_resolver_deep_free(dom_res);
++        unknown("Creating resolver failed.");
++    }
++    resolverEnableDnssec(res);
++    ldns_resolver_set_dnssec_anchors(res, rrl_valid_keys);
++
+     /* Fetch valid keys from top down */
+     i = ldns_dname_label_count(rd_domain) - ldns_dname_label_count(rd_trace);
+     for (; i>=0; i--) {
+@@ -242,6 +260,7 @@
+         free(domainname);
+         free(domaintrace);
+         ldns_resolver_deep_free(res);
++        ldns_resolver_free(dom_res);
+         ldns_rr_list_deep_free(rrl_domain_ns);
+         ldns_rr_list_deep_free(rrl_domain_ns_rrsig);
+         return checkState;
+@@ -261,7 +280,8 @@
+ 
+     ldns_rr_list_deep_free(rrl_domain_ns);
+     ldns_rr_list_deep_free(rrl_domain_ns_rrsig);
+-    ldns_resolver_deep_free(res);
++    ldns_resolver_deep_free(dom_res);
++    ldns_resolver_free(res);
+ 
+     if (ns_valid == 0) {
+         critical("No valid Signatur for NS of '%s'", domainname);
+@@ -286,6 +306,7 @@
+         MP_LONGOPTS_HOST,
+         LDNS_LONGOPTS,
+         {"domain", required_argument, 0, 'D'},
++        {"resolver", required_argument, 0, 'R'},
+         {"trace-from", required_argument, 0, 'T'},
+         {"trusted-keys", required_argument, 0, 'k'},
+         MP_LONGOPTS_END
+@@ -297,7 +318,7 @@
+     }
+ 
+     while (1) {
+-        c = mp_getopt(&argc, &argv, MP_OPTSTR_DEFAULT"H:D:T:k:"LDNS_OPTSTR, long_opts, &option);
++        c = mp_getopt(&argc, &argv, MP_OPTSTR_DEFAULT"H:D:R:T:k:"LDNS_OPTSTR, long_opts, &option);
+         if (c == -1 || c == EOF)
+             break;
+ 
+@@ -306,7 +327,10 @@
+         switch (c) {
+             /* Host opt */
+             case 'H':
+-                getopt_host_ip(optarg, &hostname);
++                getopt_host_ip(optarg, &domain_hostname);
++                break;
++            case 'R':
++                getopt_host_ip(optarg, &resolver_hostname);
+                 break;
+             case 'D':
+                 if (!is_hostname(optarg))
+@@ -348,6 +372,8 @@
+ 
+     print_help_default();
+     print_help_host();
++    printf(" -R, --resolver=RESOLVER\n");
++    printf("      The ip of the resolver used to fetch the DNS data.\n");
+     print_help_ldns();
+     printf(" -D, --domain=DOMAIN\n");
+     printf("      The name of the domain to check.\n");

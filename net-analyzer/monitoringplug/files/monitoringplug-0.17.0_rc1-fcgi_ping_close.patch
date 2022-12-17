@@ -1,0 +1,11 @@
+--- a/fcgi/check_fcgi_ping.c
++++ b/fcgi/check_fcgi_ping.c
+@@ -80,7 +80,7 @@
+     } while (type != FCGI_GET_VALUES_RESULT);
+ 
+     /* Close connection */
+-    OS_Close(fcgiSock);
++    OS_Close(fcgiSock, 0);
+ 
+     time_delta = mp_time_delta(start_time);
+     mp_perfdata_float("time", (float)time_delta, "s", NULL);

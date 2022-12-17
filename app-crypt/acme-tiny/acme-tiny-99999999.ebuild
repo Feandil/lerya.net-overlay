@@ -2,11 +2,11 @@
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
-EAPI=6
+EAPI=8
 EGIT_REPO_URI="https://github.com/Feandil/acme-tiny.git"
 PYTHON_COMPAT=(python{3_9,3_10,3_11})
 
-inherit user git-r3 python-r1 eutils
+inherit distutils-r1 git-r3
 
 DESCRIPTION="A tiny script to issue and renew TLS certs from Let's Encrypt "
 HOMEPAGE="https://github.com/Feandil/acme-tiny"
@@ -17,38 +17,38 @@ SLOT="0"
 KEYWORDS="~amd64 ~x86"
 IUSE="selinux"
 
-DEPEND="dev-libs/openssl
+RDEPEND="dev-libs/openssl
 	www-servers/nginx
-	selinux? ( sec-policy/selinux-acme-tiny )"
+	selinux? ( sec-policy/selinux-acme-tiny )
+	acct-user/acme-tiny"
 
-pkg_setup() {
-        ebegin "Creating acme-tiny group and user"
-        enewgroup acme-tiny
-        enewuser acme-tiny -1 -1 /opt/acme-tiny acme-tiny
-        eend ${?}
-}
+PATCHES=( "${FILESDIR}/${P}-fix-binary-path.patch" )
+
+# Tests require a local ACME server to be set up.
+RESTRICT="test"
 
 src_prepare() {
-	epatch "${FILESDIR}/${P}-fix-binary-path.patch"
-	default
+	distutils-r1_src_prepare
 }
 
-src_install() {
+python_install() {
+	python_doscript acme_tiny.py
+}
+
+python_install_all() {
 	dodir /opt/acme-tiny
 	fowners root:root /opt/acme-tiny
 
 	exeinto /opt/acme-tiny
 	doexe renew_cert.sh
 
-	dodir /opt/acme-tiny/certs
+	keepdir /opt/acme-tiny/certs
 	fowners acme-tiny: /opt/acme-tiny/certs
 	fperms 755 /opt/acme-tiny/certs
 
-	dodir /opt/acme-tiny/acme-challenges/
+	keepdir /opt/acme-tiny/acme-challenges/
 	fowners nginx:acme-tiny /opt/acme-tiny/acme-challenges/
 	fperms 570 /opt/acme-tiny/acme-challenges/
-
-	python_foreach_impl python_doscript acme_tiny.py
 }
 
 pkg_config()

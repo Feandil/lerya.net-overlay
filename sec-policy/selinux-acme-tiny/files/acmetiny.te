@@ -39,7 +39,6 @@ miscfiles_read_localization(acmetiny_t)
 
 sysnet_dns_name_resolve(acmetiny_t)
 corenet_tcp_connect_http_port(acmetiny_t)
-corenet_tcp_sendrecv_http_port(acmetiny_t)
 
 list_dirs_pattern(acmetiny_t, acmetiny_opt_t, acmetiny_opt_t)
 read_files_pattern(acmetiny_t, acmetiny_key_t, acmetiny_key_t)

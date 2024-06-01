@@ -4,7 +4,7 @@
 
 EAPI=8
 EGIT_REPO_URI="https://github.com/Feandil/acme-tiny.git"
-PYTHON_COMPAT=(python{3_9,3_10,3_11})
+PYTHON_COMPAT=(python{3_11,3_12})
 
 inherit distutils-r1 git-r3
 

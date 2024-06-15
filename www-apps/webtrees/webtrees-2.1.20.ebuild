@@ -2,9 +2,9 @@
 # Distributed under the terms of the GNU General Public License v2
 # $Header: /var/cvsroot/gentoo-x86/www-apps/owncloud/owncloud-7.0.2.ebuild,v 1.1 2014/08/29 12:14:32 voyageur Exp $
 
-EAPI=6
+EAPI=8
 
-inherit eutils webapp
+inherit webapp
 
 DESCRIPTION="Web based family history software"
 HOMEPAGE="http://www.webtrees.net/index.php/en/"

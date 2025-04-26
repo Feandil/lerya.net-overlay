@@ -5,6 +5,7 @@
 EAPI=8
 EGIT_REPO_URI="https://github.com/Feandil/acme-tiny.git"
 PYTHON_COMPAT=(python{3_12,3_13})
+DISTUTILS_USE_PEP517="setuptools"
 
 inherit distutils-r1 git-r3
 
@@ -17,7 +18,8 @@ SLOT="0"
 KEYWORDS="~amd64 ~x86"
 IUSE="selinux"
 
-RDEPEND="dev-libs/openssl
+BDEPEND="dev-python/setuptools-scm[${PYTHON_USEDEP}]"
+RDEPEND="dev-libs/openssl:0
 	www-servers/nginx
 	selinux? ( sec-policy/selinux-acme-tiny )
 	acct-user/acme-tiny"
@@ -49,6 +51,10 @@ python_install_all() {
 	keepdir /opt/acme-tiny/acme-challenges/
 	fowners nginx:acme-tiny /opt/acme-tiny/acme-challenges/
 	fperms 570 /opt/acme-tiny/acme-challenges/
+}
+
+pkg_setup() {
+        export SETUPTOOLS_SCM_PRETEND_VERSION="${PV}"
 }
 
 pkg_config()

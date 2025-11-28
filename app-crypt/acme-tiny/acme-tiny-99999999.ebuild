@@ -20,7 +20,7 @@ IUSE="selinux"
 
 BDEPEND="dev-python/setuptools-scm[${PYTHON_USEDEP}]"
 RDEPEND="dev-libs/openssl:0
-	www-servers/nginx
+	www-servers/nginx:*
 	selinux? ( sec-policy/selinux-acme-tiny )
 	acct-user/acme-tiny"
 

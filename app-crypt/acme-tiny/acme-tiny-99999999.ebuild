@@ -7,7 +7,7 @@ EGIT_REPO_URI="https://github.com/Feandil/acme-tiny.git"
 PYTHON_COMPAT=(python{3_13,3_14})
 DISTUTILS_USE_PEP517="setuptools"
 
-inherit distutils-r1 git-r3
+inherit distutils-r1 git-r3 systemd
 
 DESCRIPTION="A tiny script to issue and renew TLS certs from Let's Encrypt "
 HOMEPAGE="https://github.com/Feandil/acme-tiny"
@@ -51,6 +51,8 @@ python_install_all() {
 	keepdir /opt/acme-tiny/acme-challenges/
 	fowners nginx:acme-tiny /opt/acme-tiny/acme-challenges/
 	fperms 570 /opt/acme-tiny/acme-challenges/
+
+	systemd_dounit systemd/acme-tiny.{service,timer}
 }
 
 pkg_setup() {
